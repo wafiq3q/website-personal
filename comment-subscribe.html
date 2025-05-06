@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Leave a Comment & Subscribe</title>
+<style>
+  /* Reset */
+  *, *:before, *:after {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    margin: 0;
+    padding: 0;
+    color: #fff;
+    min-height: 600px;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .container {
+    background: rgba(255 255 255 / 0.1);
+    padding: 20px 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    width: 100%;
+    max-width: 350px;
+    margin: 20px auto;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25em;
+    text-align: center;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  textarea {
+    width: 100%;
+    resize: none;
+    height: 120px;
+    border-radius: 10px;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+  }
+
+  textarea::placeholder {
+    color: rgba(255 255 255 / 0.7);
+  }
+
+  button {
+    margin-top: 15px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    color: #fff;
+  }
+
+  button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+  }
+
+  .btn-comment {
+    background: #4caf50;
+  }
+
+  .btn-subscribe {
+    background: #ff5722;
+  }
+
+  .btn-send {
+    background: #2196f3;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .info-text {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #ddd;
+    text-align: center;
+  }
+
+  /* Language selector styles */
+  #languageSelector {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    z-index: 10;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  #languageSelector select {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Responsive Text */
+  @media (max-width: 400px) {
+    body {
+      max-width: 100%;
+      padding: 10px;
+    }
+    .container {
+      padding: 15px;
+      border-radius: 12px;
+    }
+    #languageSelector {
+      font-size: 0.85rem;
+      padding: 5px 10px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Comment and Subscribe form">
+    <h1 id="title">Leave Your Comment</h1>
+    <form id="commentForm">
+      <label for="commentInput" id="labelComment">Your Comment</label>
+      <textarea id="commentInput" name="commentInput" placeholder="Write your comment here..." required minlength="5" aria-required="true" aria-describedby="commentHelp"></textarea>
+      <div id="commentHelp" class="info-text">Minimum 5 characters</div>
+      <button type="submit" class="btn-comment" id="submitCommentBtn">Submit Comment</button>
+    </form>
+
+    <div id="subscribeSection" class="hidden" aria-live="polite" aria-label="Subscribe Section">
+      <p class="info-text" id="subscribeInstruction">To continue, please subscribe to my channel:</p>
+      <button id="subscribeBtn" class="btn-subscribe" aria-describedby="subscribeHelp">Subscribe Channel</button>
+      <div id="subscribeHelp" class="info-text">(opens in new tab)</div>
+      <button id="confirmSubscribeBtn" class="btn-send" disabled>I've Subscribed</button>
+    </div>
+
+    <div id="sendSection" class="hidden" aria-live="polite">
+      <button id="sendCommentBtn" class="btn-send" disabled>Send Comment to Notification</button>
+    </div>
+
+    <div id="messageBox" class="info-text" role="alert" aria-live="assertive"></div>
+  </div>
+
+  <div id="languageSelector" aria-label="Language selector">
+    <label for="langSelect" class="sr-only">Select Language</label>
+    <select id="langSelect" name="langSelect" aria-live="polite">
+      <option value="en">English</option>
+      <option value="id">Bahasa Indonesia</option>
+    </select>
+  </div>
+
+  <script>
+    (function(){
+      const channelLink = "https://www.youtube.com/channel/UCRx9x0B52oPDvgtsGfP2SWA";
+
+      // Elements
+      const commentForm = document.getElementById('commentForm');
+      const commentInput = document.getElementById('commentInput');
+      const submitCommentBtn = document.getElementById('submitCommentBtn');
+      const subscribeSection = document.getElementById('subscribeSection');
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      const confirmSubscribeBtn = document.getElementById('confirmSubscribeBtn');
+      const sendSection = document.getElementById('sendSection');
+      const sendCommentBtn = document.getElementById('sendCommentBtn');
+      const messageBox = document.getElementById('messageBox');
+      const langSelect = document.getElementById('langSelect');
+
+      // Translations
+      const texts = {
+        en: {
+          title: "Leave Your Comment",
+          labelComment: "Your Comment",
+          placeholderComment: "Write your comment here...",
+          commentHelp: "Minimum 5 characters",
+          submitCommentBtn: "Submit Comment",
+          subscribeInstruction: "To continue, please subscribe to my channel:",
+          subscribeBtn: "Subscribe Channel",
+          subscribeHelp: "(opens in new tab)",
+          confirmSubscribeBtn: "I've Subscribed",
+          sendCommentBtn: "Send Comment to Notification",
+          messageEnterComment: "Please enter a comment with at least 5 characters.",
+          messageThankYouSubscribe: "Thank you! Please subscribe to continue.",
+          messageAfterSubscribeClick: "After subscribing, please click \"I've Subscribed\" to proceed.",
+          messageSubscribeConfirmed: "Subscription confirmed. You can now send your comment.",
+          messageCommentSent: "Your comment has been successfully sent to notification. Thank you!"
+        },
+        id: {
+          title: "Tinggalkan Komentar Anda",
+          labelComment: "Komentar Anda",
+          placeholderComment: "Tulis komentar Anda di sini...",
+          commentHelp: "Minimal 5 karakter",
+          submitCommentBtn: "Kirim Komentar",
+          subscribeInstruction: "Untuk melanjutkan, silakan subscribe channel saya:",
+          subscribeBtn: "Subscribe Channel",
+          subscribeHelp: "(terbuka di tab baru)",
+          confirmSubscribeBtn: "Saya Sudah Subscribe",
+          sendCommentBtn: "Kirim Komentar ke Notifikasi",
+          messageEnterComment: "Harap masukkan komentar minimal 5 karakter.",
+          messageThankYouSubscribe: "Terima kasih! Silakan subscribe untuk melanjutkan.",
+          messageAfterSubscribeClick: "Setelah subscribe, klik \"Saya Sudah Subscribe\" untuk melanjutkan.",
+          messageSubscribeConfirmed: "Subscribe terkonfirmasi. Sekarang Anda bisa mengirim komentar Anda.",
+          messageCommentSent: "Komentar Anda telah berhasil dikirim ke notifikasi. Terima kasih!"
+        }
+      };
+
+      // State
+      let commentText = "";
+      let subscribed = false;
+      let commentSent = false;
+      let currentLang = 'en';
+
+      function updateTexts(lang) {
+        const t = texts[lang];
+        document.getElementById('title').textContent = t.title;
+        document.getElementById('labelComment').textContent = t.labelComment;
+        commentInput.placeholder = t.placeholderComment;
+        document.getElementById('commentHelp').textContent = t.commentHelp;
+        submitCommentBtn.textContent = t.submitCommentBtn;
+        document.getElementById('subscribeInstruction').textContent = t.subscribeInstruction;
+        subscribeBtn.textContent = t.subscribeBtn;
+        document.getElementById('subscribeHelp').textContent = t.subscribeHelp;
+        confirmSubscribeBtn.textContent = t.confirmSubscribeBtn;
+        sendCommentBtn.textContent = t.sendCommentBtn;
+        // Reset message box and others if needed
+        messageBox.textContent = '';
+      }
+
+      langSelect.addEventListener('change', function(){
+        currentLang = this.value;
+        updateTexts(currentLang);
+      });
+
+      // Initialize texts
+      updateTexts(currentLang);
+
+      commentForm.addEventListener('submit', function(event){
+        event.preventDefault();
+        messageBox.textContent = '';
+        commentText = commentInput.value.trim();
+        if(commentText.length < 5){
+          messageBox.textContent = texts[currentLang].messageEnterComment;
+          commentInput.focus();
+          return;
+        }
+        commentForm.classList.add('hidden');
+        subscribeSection.classList.remove('hidden');
+        confirmSubscribeBtn.disabled = true;
+        sendCommentBtn.disabled = true;
+        messageBox.textContent = texts[currentLang].messageThankYouSubscribe;
+      });
+
+      subscribeBtn.addEventListener('click', function(){
+        window.open(channelLink, '_blank', 'noopener,noreferrer');
+        confirmSubscribeBtn.disabled = false;
+        messageBox.textContent = texts[currentLang].messageAfterSubscribeClick;
+      });
+
+      confirmSubscribeBtn.addEventListener('click', function(){
+        subscribed = true;
+        subscribeSection.classList.add('hidden');
+        sendSection.classList.remove('hidden');
+        sendCommentBtn.disabled = false;
+        messageBox.textContent = texts[currentLang].messageSubscribeConfirmed;
+      });
+
+      sendCommentBtn.addEventListener('click', function(){
+        if(subscribed && commentText.length >= 5){
+          commentSent = true;
+          sendCommentBtn.disabled = true;
+          messageBox.textContent = texts[currentLang].messageCommentSent;
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
+
